@@ -17,19 +17,12 @@ public class User {
     @Column (name = "login")
     private String login;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idUser")
-    private List<Sprint> sprints;
-
     public User(){
     }
 
     public User(String login) {
         this.login = login;
-        sprints = new ArrayList<Sprint>();
     }
-
-
 
     public long getId() {
         return id;
@@ -44,14 +37,5 @@ public class User {
     void setName(String login)
     {
         this.login = login;
-    }
-
-    public List<Sprint> getSprints()
-    {
-        return sprints;
-    }
-    void setSprints(List<Sprint> sprints)
-    {
-        this.sprints = sprints;
     }
 }
