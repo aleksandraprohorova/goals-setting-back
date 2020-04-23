@@ -1,64 +1,100 @@
 package com.example.accessingdatamysql.goals;
 
+import com.example.accessingdatamysql.sprints.Sprint;
+import com.example.accessingdatamysql.sprints.SprintController;
+import com.example.accessingdatamysql.users.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.net.ssl.HttpsURLConnection;
 import java.util.Optional;
 
 @Controller
-@RequestMapping(path="/goals")
+@RequestMapping(path="users/{login}/sprints/{idSprint}/goals")
 public class GoalsController {
     @Autowired
     private GoalsRepository goalsRepository;
 
-    @RequestMapping(value = "/", method = RequestMethod.POST)
-    public ResponseEntity<Object> add(@RequestBody Goal goal) {
-        goalsRepository.save(goal);
-        return new ResponseEntity<>(goal, HttpStatus.CREATED);
-    }
+    @Autowired
+    private SprintController sprintController;
 
-    @RequestMapping(value = "/", method = RequestMethod.DELETE)
-    public ResponseEntity<Object> delete(@RequestBody Long id) {
-
-        Optional<Goal> tmp = goalsRepository.findById(id);
-        if (tmp.isPresent())
+    @GetMapping(path="/{idGoal}")
+    public @ResponseBody ResponseEntity<Goal> getGoalById(@PathVariable("login") String login,
+                                                            @PathVariable("idSprint") Long idSprint,
+                                                            @PathVariable("idGoal") Long idGoal) {
+        ResponseEntity<Sprint> sprintEntity = sprintController.getSprintById(login, idSprint);
+        if (sprintEntity.getStatusCode() == HttpStatus.OK)
         {
-            goalsRepository.delete(tmp.get());
-            return new ResponseEntity<>("Goal is deleted successsfully", HttpStatus.OK);
+            Sprint sprint = sprintEntity.getBody();
+            Optional<Goal> goal = goalsRepository.findById(idGoal);
+            if (sprint.getId() == goal.get().getIdSprint()) {
+                return new ResponseEntity<>(goal.get(), HttpStatus.OK);
+            }
         }
-        else
-        {
-            return new ResponseEntity<>("Goal is not found", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping
+    public @ResponseBody ResponseEntity<Iterable<Goal>> getAllGoals(@PathVariable("login") String login,
+                                                    @PathVariable("idSprint") Long idSprint) {
+        ResponseEntity<Sprint> sprintEntity = sprintController.getSprintById(login, idSprint);
+        if (sprintEntity.getStatusCode() == HttpStatus.OK) {
+            return new ResponseEntity<>(goalsRepository.findByIdSprint(idSprint), HttpStatus.OK);
         }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping(path="/")
+    @RequestMapping(method = RequestMethod.POST)
+    public ResponseEntity<Object> add(@RequestBody Goal goal,
+                                      @PathVariable("login") String login,
+                                      @PathVariable("idSprint") Long idSprint) {
+        ResponseEntity<Sprint> sprintEntity = sprintController.getSprintById(login, idSprint);
+        if (sprintEntity.getStatusCode() == HttpStatus.OK) {
+            Sprint sprint = sprintEntity.getBody();
+            goal.setIdSprint(sprint.getId());
+            goalsRepository.save(goal);
+            return new ResponseEntity<>(goal, HttpStatus.CREATED);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE)
+    public ResponseEntity<Object> delete(@PathVariable("login") String login,
+                                         @PathVariable("idSprint") Long idSprint,
+                                         @PathVariable("idGoal") Long idGoal) {
+
+        ResponseEntity<Sprint> sprintEntity = sprintController.getSprintById(login, idSprint);
+        if (sprintEntity.getStatusCode() == HttpStatus.OK) {
+            Sprint sprint = sprintEntity.getBody();
+            Optional<Goal> goal = goalsRepository.findById(idGoal);
+            if (goal.isPresent() && goal.get().getIdSprint() == sprint.getId()) {
+                goalsRepository.delete(goal.get());
+                return new ResponseEntity<>("Goal is deleted successsfully", HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>("Goal is not found", HttpStatus.NOT_FOUND);
+    }
+
+    @PutMapping(path = "/{idGoal}")
     public @ResponseBody
-    Iterable<Goal> getAllGoals() {
-        return goalsRepository.findAll();
-    }
+    ResponseEntity<Goal> replaceGoal(@RequestBody Goal newGoal,
+                                     @PathVariable("login") String login,
+                                     @PathVariable("idSprint") Long idSprint,
+                                     @PathVariable("idGoal") Long idGoal) {
 
-    @GetMapping(path = "/{idSprint}")
-    public @ResponseBody Iterable<Goal> getAllGoals(@PathVariable("idSprint") long idSprint) {
-        return goalsRepository.findByIdSprint(idSprint);
-    }
-
-    @PutMapping(path = "/{id}")
-    public @ResponseBody
-    Goal replaceGoal(@RequestBody Goal newGoal, @PathVariable("id") long id) {
-
-        return goalsRepository.findById(id)
-                .map(goal -> {
-                    goal.setDescription(newGoal.getDescription());
-                    goal.setIsDone(newGoal.getIsDone());
-                    return goalsRepository.save(goal);
-                })
-                .orElseGet(() -> {
-                    newGoal.setId(id);
-                    return goalsRepository.save(newGoal);
-                });
+        ResponseEntity<Sprint> sprintEntity = sprintController.getSprintById(login, idSprint);
+        if (sprintEntity.getStatusCode() == HttpStatus.OK) {
+            Sprint sprint = sprintEntity.getBody();
+            Optional<Goal> goal = goalsRepository.findById(idGoal);
+            if (goal.isPresent() && goal.get().getIdSprint() == sprint.getId()) {
+                goal.get().setDescription(newGoal.getDescription());
+                goal.get().setIsDone(newGoal.getIsDone());
+                return new ResponseEntity<>(goalsRepository.save(goal.get()), HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 }

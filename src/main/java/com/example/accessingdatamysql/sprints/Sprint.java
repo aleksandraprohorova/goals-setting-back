@@ -26,10 +26,6 @@ public class Sprint {
     @Column (name = "endDate")
     private Calendar endDate;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "idSprint")
-    private List<Goal> goalsList;
-
     public Sprint()
     {
     }
@@ -38,7 +34,6 @@ public class Sprint {
         this.id = id;
         this.startDate = startDate;
         this.endDate = endDate;
-        goalsList = new ArrayList<>();
     }
 
     public long getId() { return id; }
@@ -67,6 +62,7 @@ public class Sprint {
         }
     }
 
+
     public Calendar getEndDate()
     {
         return endDate;
@@ -79,14 +75,6 @@ public class Sprint {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-    }
-
-    public List<Goal> getGoalsList() {
-        return goalsList;
-    }
-    public void setGoalsList(List<Goal> goalsList)
-    {
-        this.goalsList = goalsList;
     }
 
 
