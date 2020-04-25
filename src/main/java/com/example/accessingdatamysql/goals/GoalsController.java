@@ -61,7 +61,7 @@ public class GoalsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{idGoal}", method = RequestMethod.DELETE)
     public ResponseEntity<Object> delete(@PathVariable("login") String login,
                                          @PathVariable("idSprint") Long idSprint,
                                          @PathVariable("idGoal") Long idGoal) {
@@ -72,10 +72,24 @@ public class GoalsController {
             Optional<Goal> goal = goalsRepository.findById(idGoal);
             if (goal.isPresent() && goal.get().getIdSprint() == sprint.getId()) {
                 goalsRepository.delete(goal.get());
-                return new ResponseEntity<>("Goal is deleted successsfully", HttpStatus.OK);
+                return new ResponseEntity<>(goal, HttpStatus.OK);
             }
         }
-        return new ResponseEntity<>("Goal is not found", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    @RequestMapping(method = RequestMethod.DELETE)
+    public ResponseEntity<Object> deleteBySprintId(@PathVariable("login") String login,
+                                         @PathVariable("idSprint") Long idSprint) {
+
+        ResponseEntity<Sprint> sprintEntity = sprintController.getSprintById(login, idSprint);
+        if (sprintEntity.getStatusCode() == HttpStatus.OK) {
+            Iterable<Goal> goals = goalsRepository.findByIdSprint(idSprint);
+            for (Goal goal: goals) {
+                goalsRepository.delete(goal);
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PutMapping(path = "/{idGoal}")

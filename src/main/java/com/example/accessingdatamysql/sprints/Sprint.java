@@ -52,7 +52,7 @@ public class Sprint {
     {
         return startDate;
     }
-    public void setStartDate(String startDate) {
+    /*public void setStartDate(String startDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
         try {
             this.startDate = Calendar.getInstance();
@@ -60,6 +60,9 @@ public class Sprint {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+    }*/
+    public void setStartDate(Calendar startDate) {
+        this.startDate = startDate;
     }
 
 
@@ -67,7 +70,7 @@ public class Sprint {
     {
         return endDate;
     }
-    public void setEndDate(String endDate) {
+    /*public void setEndDate(String endDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
         try {
             this.endDate = Calendar.getInstance();
@@ -75,7 +78,10 @@ public class Sprint {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
+    public void setEndDate(Calendar endDate) {
+        this.endDate = endDate;
+    }
 
 }
