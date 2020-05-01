@@ -1,15 +1,14 @@
 package com.example.accessingdatamysql.goals;
 
-import com.example.accessingdatamysql.sprints.Sprint;
+import com.example.accessingdatamysql.security.IAuthenticationFacade;
 import com.example.accessingdatamysql.sprints.SprintController;
-import com.example.accessingdatamysql.users.User;
+import com.example.accessingdatamysql.sprints.Sprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.util.Optional;
 
 @Controller
@@ -21,10 +20,10 @@ public class GoalsController {
     @Autowired
     private SprintController sprintController;
 
-    @GetMapping(path="/{idGoal}")
+   @GetMapping(path="/{idGoal}")
     public @ResponseBody ResponseEntity<Goal> getGoalById(@PathVariable("login") String login,
-                                                            @PathVariable("idSprint") Long idSprint,
-                                                            @PathVariable("idGoal") Long idGoal) {
+                                                          @PathVariable("idSprint") Long idSprint,
+                                                          @PathVariable("idGoal") Long idGoal) {
         ResponseEntity<Sprint> sprintEntity = sprintController.getSprintById(login, idSprint);
         if (sprintEntity.getStatusCode() == HttpStatus.OK)
         {

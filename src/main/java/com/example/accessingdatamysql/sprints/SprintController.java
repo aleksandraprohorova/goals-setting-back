@@ -1,17 +1,15 @@
 package com.example.accessingdatamysql.sprints;
 
-import com.example.accessingdatamysql.goals.Goal;
 import com.example.accessingdatamysql.goals.GoalsController;
 import com.example.accessingdatamysql.users.User;
 import com.example.accessingdatamysql.users.UserController;
-import org.graalvm.compiler.nodes.calc.IntegerDivRemNode;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -28,12 +26,18 @@ public class SprintController {
 
     @GetMapping(value="/{idSprint}")
     public @ResponseBody ResponseEntity<Sprint> getSprintById(@PathVariable("login") String login,
-                                                        @PathVariable("idSprint") Long idSprint) {
+                                                        @PathVariable("idSprint") Long idSprint
+                                                              ) {
         ResponseEntity<User> userEntity = userController.getUserByLogin(login);
+
         if (userEntity.getStatusCode() == HttpStatus.OK)
         {
-            Optional<Sprint> sprint = sprintRepository.findById(idSprint);
-            if (sprint.isPresent() && sprint.get().getIdUser() == userEntity.getBody().getId())
+            User user = userEntity.getBody();
+            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.getId());
+            final Optional<Sprint> sprint = sprints.stream()
+                    .filter(s -> s.getId() == idSprint)
+                    .findAny();
+            if (sprint.isPresent())
             {
                 return new ResponseEntity<>(sprint.get(), HttpStatus.OK);
             }
@@ -67,8 +71,12 @@ public class SprintController {
                                          @PathVariable("login") String login) {
         ResponseEntity<User> userEntity = userController.getUserByLogin(login);
         if (userEntity.getStatusCode() == HttpStatus.OK) {
-            Optional<Sprint> sprint = sprintRepository.findById(idSprint);
-            if (sprint.isPresent() && sprint.get().getIdUser() == userEntity.getBody().getId())
+            User user = userEntity.getBody();
+            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.getId());
+            final Optional<Sprint> sprint = sprints.stream()
+                    .filter(s -> s.getId() == idSprint)
+                    .findAny();
+            if (sprint.isPresent())
             {
                 goalsController.deleteBySprintId(login, idSprint);
                 sprintRepository.delete(sprint.get());
@@ -87,10 +95,11 @@ public class SprintController {
         ResponseEntity<User> userEntity = userController.getUserByLogin(login);
         if (userEntity.getStatusCode() == HttpStatus.OK) {
             User user = userEntity.getBody();
-            Optional<Sprint> sprint = sprintRepository.findById(idSprint);
-            if (sprint.isPresent() && sprint.get().getIdUser() == user.getId()) {
-                //sprint.get().setStartDate(newSprint.getStartDate().toString());
-                //sprint.get().setEndDate(newSprint.getEndDate().toString());
+            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.getId());
+            final Optional<Sprint> sprint = sprints.stream()
+                    .filter(s -> s.getId() == idSprint)
+                    .findAny();
+            if (sprint.isPresent()) {
                 newSprint.setId(idSprint);
                 return new ResponseEntity<>(sprintRepository.save(newSprint), HttpStatus.OK);
             }

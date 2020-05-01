@@ -1,11 +1,15 @@
 package com.example.accessingdatamysql.users;
 
+import com.example.accessingdatamysql.security.IAuthenticationFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.Optional;
 
 @Controller
@@ -14,11 +18,28 @@ public class UserController {
 	@Autowired
 	private UserRepository userRepository;
 
-	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<Object> add(@RequestBody User user) {
-		userRepository.save(user);
-		return new ResponseEntity<>("User is created successfully", HttpStatus.CREATED);
+	@Autowired
+	private IAuthenticationFacade authenticationFacade;
+
+
+	@RequestMapping(value = "/{login}", method = RequestMethod.GET)
+	public @ResponseBody ResponseEntity<User> getUserByLogin(@PathVariable("login") String login){
+		Authentication authentication = authenticationFacade.getAuthentication();
+		if (!authentication.getName().equals(login)) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		Optional<User> user = userRepository.findByLogin(login);
+		return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 	}
+
+	@RequestMapping(value = "/username", method = RequestMethod.GET)
+	@ResponseBody
+	public String currentUserName() {
+		Authentication authentication = authenticationFacade.getAuthentication();
+		return authentication.getName();
+	}
+
+
 
 	@RequestMapping(method = RequestMethod.DELETE)
 	public ResponseEntity<Object> delete(@RequestBody Long id) {
@@ -41,13 +62,5 @@ public class UserController {
 		return new ResponseEntity<>(userRepository.findAll(), HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/{login}", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<User> getUserByLogin(@PathVariable("login") String login){
-		Optional<User> user = userRepository.findByLogin(login);
-		if (user.isPresent())
-		{
-			return new ResponseEntity<>(user.get(), HttpStatus.OK);
-		}
-		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-	}
+
 }
