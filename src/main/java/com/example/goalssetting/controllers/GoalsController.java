@@ -1,8 +1,8 @@
-package com.example.accessingdatamysql.goals;
+package com.example.goalssetting.controllers;
 
-import com.example.accessingdatamysql.security.IAuthenticationFacade;
-import com.example.accessingdatamysql.sprints.SprintController;
-import com.example.accessingdatamysql.sprints.Sprint;
+import com.example.goalssetting.entity.Goal;
+import com.example.goalssetting.repositories.GoalsRepository;
+import com.example.goalssetting.entity.Sprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

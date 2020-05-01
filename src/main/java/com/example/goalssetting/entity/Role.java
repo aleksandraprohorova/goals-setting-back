@@ -1,4 +1,4 @@
-package com.example.accessingdatamysql.users;
+package com.example.goalssetting.entity;
 
 import org.springframework.security.core.GrantedAuthority;
 

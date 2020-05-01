@@ -27,5 +27,5 @@ test {
 	useJUnitPlatform()
 }
 bootJar {
-	mainClassName = 'com.example.accessingdatamysql.AccessingDataMysqlApplication'
+	mainClassName = 'com.example.goalssetting.GoalsSettingApplication'
 }

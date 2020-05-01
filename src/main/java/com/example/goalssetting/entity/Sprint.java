@@ -1,14 +1,7 @@
-package com.example.accessingdatamysql.sprints;
-
-import com.example.accessingdatamysql.goals.Goal;
+package com.example.goalssetting.entity;
 
 import javax.persistence.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
 
 @Entity
 @Table(name = "sprint")

@@ -1,8 +1,8 @@
-package com.example.accessingdatamysql.sprints;
+package com.example.goalssetting.controllers;
 
-import com.example.accessingdatamysql.goals.GoalsController;
-import com.example.accessingdatamysql.users.User;
-import com.example.accessingdatamysql.users.UserController;
+import com.example.goalssetting.entity.Sprint;
+import com.example.goalssetting.repositories.SprintRepository;
+import com.example.goalssetting.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +26,7 @@ public class SprintController {
 
     @GetMapping(value="/{idSprint}")
     public @ResponseBody ResponseEntity<Sprint> getSprintById(@PathVariable("login") String login,
-                                                        @PathVariable("idSprint") Long idSprint
+                                                              @PathVariable("idSprint") Long idSprint
                                                               ) {
         ResponseEntity<User> userEntity = userController.getUserByLogin(login);
 

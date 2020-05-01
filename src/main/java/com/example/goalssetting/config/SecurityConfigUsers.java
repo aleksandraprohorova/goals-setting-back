@@ -1,34 +1,35 @@
-package com.example.accessingdatamysql.security;
+package com.example.goalssetting.config;
 
-import com.example.accessingdatamysql.security.AuthenticationFacade;
-import com.example.accessingdatamysql.security.IAuthenticationFacade;
-import com.example.accessingdatamysql.users.CustomUserDetailsService;
+import com.example.goalssetting.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 
 @Configuration
-@EnableWebSecurity
-@Order(2)
-public class SecurityConfigRegistration extends WebSecurityConfigurerAdapter {
-
+@Order(1)
+public class SecurityConfigUsers extends WebSecurityConfigurerAdapter {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        System.out.println("CONFIGURE");
-        httpSecurity
-                .csrf().disable()
-                .authorizeRequests().antMatchers("/registration**").not().authenticated()
-                ;
+
+        httpSecurity.antMatcher("/users/**")
+                .authorizeRequests().anyRequest().authenticated()
+                .and().httpBasic().authenticationEntryPoint(authenticationEntryPoint());
+    }
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint(){
+        BasicAuthenticationEntryPoint entryPoint =
+                new BasicAuthenticationEntryPoint();
+        entryPoint.setRealmName("admin");
+        return entryPoint;
     }
 
     @Override
@@ -36,6 +37,4 @@ public class SecurityConfigRegistration extends WebSecurityConfigurerAdapter {
             throws Exception {
         auth.userDetailsService(userDetailsService);
     }
-
-
 }

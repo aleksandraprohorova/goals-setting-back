@@ -1,8 +1,10 @@
-package com.example.accessingdatamysql.users;
+package com.example.goalssetting.security;
 
+import com.example.goalssetting.entity.Role;
+import com.example.goalssetting.entity.User;
+import com.example.goalssetting.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
