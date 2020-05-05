@@ -1,5 +1,6 @@
-package com.example.accessingdatamysql.users;
+package com.example.goalssetting.repositories;
 
+import com.example.goalssetting.entity.User;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Optional;

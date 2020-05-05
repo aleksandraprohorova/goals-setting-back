@@ -1,14 +1,7 @@
-package com.example.accessingdatamysql.sprints;
-
-import com.example.accessingdatamysql.goals.Goal;
+package com.example.goalssetting.entity;
 
 import javax.persistence.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
 
 @Entity
 @Table(name = "sprint")
@@ -52,15 +45,6 @@ public class Sprint {
     {
         return startDate;
     }
-    /*public void setStartDate(String startDate) {
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-        try {
-            this.startDate = Calendar.getInstance();
-            this.startDate.setTime(sdf.parse(startDate));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-    }*/
     public void setStartDate(Calendar startDate) {
         this.startDate = startDate;
     }
@@ -70,16 +54,6 @@ public class Sprint {
     {
         return endDate;
     }
-    /*public void setEndDate(String endDate) {
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-        try {
-            this.endDate = Calendar.getInstance();
-            this.endDate.setTime(sdf.parse(endDate));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-    }*/
-
     public void setEndDate(Calendar endDate) {
         this.endDate = endDate;
     }

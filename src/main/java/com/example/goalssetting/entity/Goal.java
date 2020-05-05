@@ -1,4 +1,4 @@
-package com.example.accessingdatamysql.goals;
+package com.example.goalssetting.entity;
 
 import javax.persistence.*;
 
