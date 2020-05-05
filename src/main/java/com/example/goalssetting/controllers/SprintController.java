@@ -3,9 +3,14 @@ package com.example.goalssetting.controllers;
 import com.example.goalssetting.entity.Sprint;
 import com.example.goalssetting.repositories.SprintRepository;
 import com.example.goalssetting.entity.User;
+import com.example.goalssetting.repositories.UserRepository;
+import com.example.goalssetting.security.IAuthenticationFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,27 +18,31 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping(path="users/{login}/sprints")
+@RequestMapping(path="users/sprints")
 public class SprintController {
     @Autowired
-    private SprintRepository sprintRepository;
+    private IAuthenticationFacade authenticationFacade;
+
     @Autowired
-    UserController userController;
+    private UserRepository userRepository;
+
+    @Autowired
+    private SprintRepository sprintRepository;
 
     @Autowired
     GoalsController goalsController;
 
-
     @GetMapping(value="/{idSprint}")
-    public @ResponseBody ResponseEntity<Sprint> getSprintById(@PathVariable("login") String login,
-                                                              @PathVariable("idSprint") Long idSprint
-                                                              ) {
-        ResponseEntity<User> userEntity = userController.getUserByLogin(login);
+    public @ResponseBody ResponseEntity<Sprint>
+    getSprintById(@PathVariable("idSprint") Long idSprint) {
 
-        if (userEntity.getStatusCode() == HttpStatus.OK)
+        Authentication authentication = authenticationFacade.getAuthentication();
+        String login = authentication.getName();
+        Optional<User> user = userRepository.findByLogin(login);
+
+        if (user.isPresent())
         {
-            User user = userEntity.getBody();
-            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.getId());
+            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.get().getId());
             final Optional<Sprint> sprint = sprints.stream()
                     .filter(s -> s.getId() == idSprint)
                     .findAny();
@@ -46,20 +55,32 @@ public class SprintController {
     }
 
     @GetMapping
-    public @ResponseBody ResponseEntity<Iterable<Sprint>> getAllSprints(@PathVariable("login") String login) {
-        ResponseEntity<User> userEntity = userController.getUserByLogin(login);
-        if (userEntity.getStatusCode() == HttpStatus.OK)
-        {
-            return new ResponseEntity<>(sprintRepository.findByIdUser(userEntity.getBody().getId()), HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    public @ResponseBody ResponseEntity<Iterable<Sprint>> getAllSprints() {
+
+        Authentication authentication = authenticationFacade.getAuthentication();
+        String login = authentication.getName();
+        Optional<User> user = userRepository.findByLogin(login);
+
+        return user.map(value -> new ResponseEntity<>(sprintRepository.findByIdUser(value.getId()), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Object> add(@RequestBody Sprint sprint, @PathVariable("login") String login) {
-        ResponseEntity<User> userEntity = userController.getUserByLogin(login);
-        if (userEntity.getStatusCode() == HttpStatus.OK) {
-            sprint.setIdUser(userEntity.getBody().getId());
+    public @ResponseBody ResponseEntity<Object>
+    add(@RequestBody Sprint sprint) {
+
+        Authentication authentication = authenticationFacade.getAuthentication();
+        String login = authentication.getName();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            login = ((UserDetails)principal).getUsername();
+        } else {
+            login = principal.toString();
+        }
+        Optional<User> user = userRepository.findByLogin(login);
+
+        if (user.isPresent()) {
+            sprint.setIdUser(user.get().getId());
             sprintRepository.save(sprint);
             return new ResponseEntity<>(sprint.getId(), HttpStatus.CREATED);
         }
@@ -67,18 +88,21 @@ public class SprintController {
     }
 
     @RequestMapping(value="/{idSprint}", method = RequestMethod.DELETE)
-    public ResponseEntity<Object> delete(@PathVariable("idSprint") Long idSprint,
-                                         @PathVariable("login") String login) {
-        ResponseEntity<User> userEntity = userController.getUserByLogin(login);
-        if (userEntity.getStatusCode() == HttpStatus.OK) {
-            User user = userEntity.getBody();
-            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.getId());
+    public ResponseEntity<Object>
+    delete(@PathVariable("idSprint") Long idSprint) {
+
+        Authentication authentication = authenticationFacade.getAuthentication();
+        String login = authentication.getName();
+        Optional<User> user = userRepository.findByLogin(login);
+
+        if (user.isPresent()) {
+            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.get().getId());
             final Optional<Sprint> sprint = sprints.stream()
                     .filter(s -> s.getId() == idSprint)
                     .findAny();
             if (sprint.isPresent())
             {
-                goalsController.deleteBySprintId(login, idSprint);
+                goalsController.deleteBySprintId(idSprint);
                 sprintRepository.delete(sprint.get());
                 return new ResponseEntity<>(sprint, HttpStatus.OK);
             }
@@ -87,15 +111,16 @@ public class SprintController {
     }
 
     @PutMapping(value = "/{idSprint}")
-    public @ResponseBody
-    ResponseEntity<Sprint> replaceSprint(@RequestBody Sprint newSprint,
-                                     @PathVariable("login") String login,
-                                     @PathVariable("idSprint") Long idSprint) {
+    public @ResponseBody ResponseEntity<Sprint>
+    replaceSprint(@RequestBody Sprint newSprint,
+                  @PathVariable("idSprint") Long idSprint) {
 
-        ResponseEntity<User> userEntity = userController.getUserByLogin(login);
-        if (userEntity.getStatusCode() == HttpStatus.OK) {
-            User user = userEntity.getBody();
-            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.getId());
+        Authentication authentication = authenticationFacade.getAuthentication();
+        String login = authentication.getName();
+        Optional<User> user = userRepository.findByLogin(login);
+
+        if (user.isPresent()) {
+            List<Sprint> sprints = (List<Sprint>) sprintRepository.findByIdUser(user.get().getId());
             final Optional<Sprint> sprint = sprints.stream()
                     .filter(s -> s.getId() == idSprint)
                     .findAny();
@@ -106,7 +131,4 @@ public class SprintController {
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
-
-
 }

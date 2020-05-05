@@ -13,24 +13,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @EnableWebSecurity
 @Order(2)
 public class SecurityConfigRegistration extends WebSecurityConfigurerAdapter {
-
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        System.out.println("CONFIGURE");
         httpSecurity
                 .csrf().disable()
-                .authorizeRequests().antMatchers("/registration**").not().authenticated()
-                ;
+                .authorizeRequests().antMatchers("/registration**").not().authenticated();
     }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth)
-            throws Exception {
-        auth.userDetailsService(userDetailsService);
-    }
-
-
 }

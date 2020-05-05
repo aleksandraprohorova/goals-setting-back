@@ -1,5 +1,6 @@
 package com.example.goalssetting.controllers;
 
+import com.example.goalssetting.entity.UserInfo;
 import com.example.goalssetting.security.IAuthenticationFacade;
 import com.example.goalssetting.entity.User;
 import com.example.goalssetting.repositories.UserRepository;
@@ -22,8 +23,21 @@ public class UserController {
 	private IAuthenticationFacade authenticationFacade;
 
 
+	@RequestMapping(value = "/authorize", method = RequestMethod.GET)
+	public @ResponseBody
+	ResponseEntity<UserInfo> authorize() {
+		Authentication authentication = authenticationFacade.getAuthentication();
+		Optional<User> user = userRepository.findByLogin(authentication.getName());
+
+		if (authentication.getName().equals("anonymousUser") || !user.isPresent()) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+		return new ResponseEntity<>(new UserInfo(authentication.getName(), user.get().getPassword()), HttpStatus.OK);
+	}
+
 	@RequestMapping(value = "/{login}", method = RequestMethod.GET)
-	public @ResponseBody ResponseEntity<User> getUserByLogin(@PathVariable("login") String login){
+	public @ResponseBody ResponseEntity<User>
+	getUserByLogin(@PathVariable("login") String login) {
 		Authentication authentication = authenticationFacade.getAuthentication();
 		if (!authentication.getName().equals(login)) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -40,11 +54,13 @@ public class UserController {
 	}
 
 
-
-	@RequestMapping(method = RequestMethod.DELETE)
-	public ResponseEntity<Object> delete(@RequestBody Long id) {
-
-		Optional<User> tmp = userRepository.findById(id);
+	@RequestMapping(value = "/{login}", method = RequestMethod.DELETE)
+	public ResponseEntity<Object> deleteByLogin(@PathVariable String login) {
+		Authentication authentication = authenticationFacade.getAuthentication();
+		if (!authentication.getName().equals(login)) {
+			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		}
+		Optional<User> tmp = userRepository.findByLogin(login);
 		if (tmp.isPresent())
 		{
 			userRepository.delete(tmp.get());
